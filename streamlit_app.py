@@ -2,6 +2,7 @@ from groq import Groq
 import streamlit as st
 import pandas as pd # just in case the agent needs it
 from decouple import config
+from plotly import express as px
 import logging, coloredlogs
 logger = logging.getLogger(__name__)
 coloredlogs.install(level=config('LOG_LEVEL', 'INFO'), logger=logger)
@@ -37,8 +38,8 @@ You are an expert at finding data and then returning it in a specific format so 
 
 You always return data in a python dict format something like this:
 {
-    'Date': ['2020-01-01', '2020-01-02', '2020-01-03'],
-    'Population': [100, 200, 300]
+    'Year': ['1921', '1951', '1981', '2001', '2011', '2021'],
+    'Population': [251321000, 361088000, 683159652, 1028737436, 1210854977, 1393409038]
 }
 So that I can call eval() on it and get a python dict object.
 Do not return anything else.
@@ -81,7 +82,24 @@ chart_system_messages = [
             'Population': [251321000, 361088000, 683159652, 1028737436, 1210854977, 1393409038]
         }
     }"""},
-    {'role': 'assistant', 'content': """st.line_chart(df, x='Year', y='Population', title='Population of India over time')"""}
+    {'role': 'assistant', 'content': """
+```python
+population_data = {
+    'Year': ['1921', '1951', '1981', '2001', '2011', '2021'],
+    'Population': [251321000, 361088000, 683159652, 1028737436, 1210854977, 1393409038]
+}
+
+population_df = pd.DataFrame(population_data)
+
+px.line(
+    population_df,
+    x='Year',
+    y='Population',
+    title='Population of India over time'
+)
+    st.plotly_chart(p, use_container_width=True)
+```
+"""}
 ]
 
 def get_data_question(prompt):
